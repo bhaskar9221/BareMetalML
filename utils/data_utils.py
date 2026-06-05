@@ -1,5 +1,5 @@
 """
-Splitting the Data into Train and Test Sets for Machine Learning Models
+This module is for Splitting the Data into Train and Test Sets for Machine Learning Models
 """
 
 import numpy as np 
