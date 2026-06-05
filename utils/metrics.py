@@ -30,3 +30,49 @@ def r2_score(y_true, y_pred):
 
 
 
+"""
+Classification Metrics
+"""
+
+#Accuracy Score
+def accuracy_score(y_true, y_pred):
+    return np.mean(y_true == y_pred)
+
+#Confusion Matrix
+def confusion_matrix(y_true, y_pred):
+    classes = np.unique(y_true)
+    n = len(classes)
+    matrix = np.zeros((n, n), dtype=int)
+    for i, actual in enumerate(classes):
+        for j, predicted in enumerate(classes):
+            matrix[i, j] = np.sum((y_true == actual) & (y_pred == predicted))
+    
+    return matrix
+
+
+#Precision Score(Binary Currently)
+def precision_score(y_true, y_pred):
+    tp = np.sum((y_true == 1) & (y_pred == 1))
+    fp = np.sum((y_true == 0) & (y_pred == 1))
+    if tp + fp == 0:
+        return 0.0
+    return tp / (tp + fp)
+
+
+#Recall Score(Binary Currently)
+def recall_score(y_true, y_pred):
+    tp = np.sum((y_true == 1) & (y_pred == 1))
+    fn = np.sum((y_true == 1) & (y_pred == 0))
+    if tp + fn == 0:
+        return 0.0
+    return tp / (tp + fn)
+
+
+#F1 Score
+def f1_score(y_true, y_pred):
+    p = precision_score(y_true, y_pred)
+    r = recall_score(y_true, y_pred)
+
+    if p + r == 0:
+        return 0.0
+    return 2 * (p * r) / (p + r)
