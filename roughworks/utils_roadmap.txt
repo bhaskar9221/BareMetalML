@@ -1,0 +1,257 @@
+🛠️ Assignment 0 — Utils
+Folder structure you're building:
+utils/
+├── __init__.py
+├── data_utils.py
+├── metrics.py
+├── preprocessing.py
+└── plotting.py
+
+📄 File 1 — data_utils.py
+One job: split your data. Everything imports this.
+
+Part A — train_test_split
+Signature:
+pythondef train_test_split(X, y, test_size=0.2, random_state=None):
+Pseudocode:
+1. If random_state is given → seed numpy RNG with it
+
+2. Get n = number of rows in X
+
+3. Create an array of indices: [0, 1, 2, ..., n-1]
+
+4. Shuffle that indices array (in-place)
+
+5. Compute split_point = int(n * (1 - test_size))
+
+6. train_indices = indices[:split_point]
+   test_indices  = indices[split_point:]
+
+7. X_train = X[train_indices]
+   X_test  = X[test_indices]
+   y_train = y[train_indices]
+   y_test  = y[test_indices]
+
+8. Return X_train, X_test, y_train, y_test
+Things to be careful about:
+
+X can be 2D (n, features) — always index rows, not columns
+y can be 1D (n,) or 2D (n, 1) — your indexing should handle both
+Do NOT use a Python list shuffle — use np.random.shuffle on the indices array
+
+Deliverable — run this and it should print correct shapes:
+pythonX = np.random.randn(100, 5)
+y = np.random.randn(100)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+print(X_train.shape)  # (80, 5)
+print(X_test.shape)   # (20, 5)
+print(y_train.shape)  # (80,)
+print(y_test.shape)   # (20,)
+
+📄 File 2 — metrics.py
+Two sections — regression metrics and classification metrics. Import numpy only.
+
+Part A — Regression Metrics
+
+mean_squared_error(y_true, y_pred)
+1. Compute difference = y_true - y_pred
+2. Square every element
+3. Return the mean
+
+mean_absolute_error(y_true, y_pred)
+1. Compute difference = y_true - y_pred
+2. Take absolute value of every element
+3. Return the mean
+
+r2_score(y_true, y_pred)
+1. SS_res = sum of (y_true - y_pred)²       ← residual sum of squares
+2. SS_tot = sum of (y_true - mean(y_true))²  ← total sum of squares
+3. Return 1 - (SS_res / SS_tot)
+Edge case to handle: if SS_tot is 0 (all y_true values are identical), return 0.0 instead of dividing by zero.
+Deliverable:
+pythony_true = np.array([3.0, 5.0, 7.0])
+y_pred = np.array([3.0, 5.0, 7.0])  # perfect predictions
+print(mse(y_true, y_pred))   # 0.0
+print(mae(y_true, y_pred))   # 0.0
+print(r2(y_true, y_pred))    # 1.0
+
+y_pred_bad = np.array([0.0, 0.0, 0.0])
+print(r2(y_true, y_pred_bad))  # should be negative
+
+Part B — Classification Metrics
+
+accuracy_score(y_true, y_pred)
+1. Compare y_true == y_pred element-wise → boolean array
+2. Return mean of that boolean array
+
+confusion_matrix(y_true, y_pred)
+1. Get all unique classes from y_true using np.unique → shape (n_classes,)
+2. Create a zero matrix of shape (n_classes, n_classes)
+
+3. For each (i, j) pair of classes:
+     matrix[i][j] = count of samples where y_true==class_i AND y_pred==class_j
+
+4. Return the matrix
+
+Note: rows = actual class, columns = predicted class
+Why this way: using np.unique makes it automatically work for binary AND multiclass without any special casing.
+
+precision_score(y_true, y_pred) — binary only for now
+1. TP = count where y_true==1 AND y_pred==1
+2. FP = count where y_true==0 AND y_pred==1
+3. If (TP + FP) == 0 → return 0.0   (avoid division by zero)
+4. Return TP / (TP + FP)
+
+recall_score(y_true, y_pred) — binary only for now
+1. TP = count where y_true==1 AND y_pred==1
+2. FN = count where y_true==1 AND y_pred==0
+3. If (TP + FN) == 0 → return 0.0
+4. Return TP / (TP + FN)
+
+f1_score(y_true, y_pred)
+1. p = precision_score(y_true, y_pred)
+2. r = recall_score(y_true, y_pred)
+3. If (p + r) == 0 → return 0.0
+4. Return 2 * p * r / (p + r)
+Deliverable:
+pythony_true = np.array([1, 0, 1, 1, 0, 1])
+y_pred = np.array([1, 0, 1, 0, 0, 1])
+
+print(accuracy_score(y_true, y_pred))   # 0.833...
+print(confusion_matrix(y_true, y_pred)) # [[2,0],[1,3]]
+print(precision_score(y_true, y_pred))  # 1.0
+print(recall_score(y_true, y_pred))     # 0.75
+print(f1_score(y_true, y_pred))         # 0.857...
+
+📄 File 3 — preprocessing.py
+Class-based design. Fit on train, transform anything.
+
+Part A — StandardScaler
+Why a class: you need to store the mean and std computed on train data, and reuse them on test data. A function can't do that cleanly.
+Pseudocode:
+class StandardScaler:
+
+    __init__:
+        self.mean_ = None
+        self.std_  = None
+
+    fit(X):
+        1. Compute mean of each feature (column) → shape (n_features,)
+        2. Compute std of each feature (column) → shape (n_features,)
+           Use ddof=0 (population std, not sample std)
+        3. Store as self.mean_ and self.std_
+
+    transform(X):
+        1. Subtract self.mean_ from X
+        2. Divide by self.std_
+        3. Handle edge case: if any std == 0, don't divide (set those columns to 0)
+        4. Return transformed X
+
+    fit_transform(X):
+        1. Call self.fit(X)
+        2. Return self.transform(X)
+        → just a convenience method, two lines
+
+Part B — MinMaxScaler
+class MinMaxScaler:
+
+    __init__:
+        self.min_ = None
+        self.max_ = None
+
+    fit(X):
+        1. Compute min of each feature (column) → shape (n_features,)
+        2. Compute max of each feature (column) → shape (n_features,)
+        3. Store as self.min_ and self.max_
+
+    transform(X):
+        1. numerator   = X - self.min_
+        2. denominator = self.max_ - self.min_
+        3. Handle edge case: if denominator == 0, set those columns to 0
+        4. Return numerator / denominator
+
+    fit_transform(X):
+        same pattern as StandardScaler
+Deliverable for both scalers:
+pythonX_train = np.array([[1,2],[3,4],[5,6]], dtype=float)
+X_test  = np.array([[2,3],[4,5]],       dtype=float)
+
+scaler = StandardScaler()
+scaler.fit(X_train)
+X_train_scaled = scaler.transform(X_train)
+X_test_scaled  = scaler.transform(X_test)
+
+print(X_train_scaled.mean(axis=0))  # [~0.0, ~0.0]
+print(X_train_scaled.std(axis=0))   # [~1.0, ~1.0]
+# X_test uses TRAIN stats — values will NOT be exactly 0 mean, that's correct
+
+📄 File 4 — plotting.py
+One big reusable function. You'll call this in 4 future assignments.
+
+Part A — plot_decision_boundary
+Signature:
+pythondef plot_decision_boundary(model, X, y, title="Decision Boundary", resolution=0.02):
+Pseudocode:
+1. Extract x1 = X[:, 0], x2 = X[:, 1]
+
+2. Build grid:
+   x1_min = x1.min() - 1,  x1_max = x1.max() + 1
+   x2_min = x2.min() - 1,  x2_max = x2.max() + 1
+   
+   xx1, xx2 = np.meshgrid(
+       np.arange(x1_min, x1_max, resolution),
+       np.arange(x2_min, x2_max, resolution)
+   )
+
+3. Flatten the grid into (n_points, 2) array:
+   grid_points = np.c_[xx1.ravel(), xx2.ravel()]
+
+4. Z = model.predict(grid_points)
+   Z = Z.reshape(xx1.shape)
+
+5. plt.contourf(xx1, xx2, Z, alpha=0.3, cmap='RdYlBu')
+
+6. plt.scatter(X[:, 0], X[:, 1], c=y, cmap='RdYlBu', edgecolors='black', s=30)
+
+7. plt.title(title)
+   plt.xlabel("Feature 1")
+   plt.ylabel("Feature 2")
+   plt.tight_layout()
+   plt.show()
+Things to think about:
+
+model.predict() must exist — this is the interface contract all your future models must follow
+resolution=0.02 means 0.02 unit steps in the grid — smaller = smoother but slower
+The np.c_ trick horizontally stacks two flattened arrays into a 2-column matrix — understand what it's doing
+
+Deliverable — test with a dummy model:
+pythonclass DummyModel:
+    def predict(self, X):
+        return (X[:, 0] > 0).astype(int)  # left half = 0, right half = 1
+
+X = np.random.randn(100, 2)
+y = (X[:, 0] > 0).astype(int)
+
+plot_decision_boundary(DummyModel(), X, y, title="Dummy Boundary")
+# Should show a clean vertical boundary at x=0
+
+📄 File 5 — __init__.py
+Last thing. Write this after all files are done.
+pythonfrom .data_utils    import train_test_split
+from .metrics       import (accuracy_score, confusion_matrix,
+                            precision_score, recall_score, f1_score,
+                            mean_squared_error, mean_absolute_error, r2_score)
+from .preprocessing import StandardScaler, MinMaxScaler
+from .plotting      import plot_decision_boundary
+This lets every future algorithm just do:
+pythonfrom utils import train_test_split, StandardScaler, accuracy_score
+
+✅ Assignment 0 Checklist
+[ ] data_utils.py    → train_test_split works, shapes are correct
+[ ] metrics.py       → all 8 functions pass their deliverable checks
+[ ] preprocessing.py → StandardScaler and MinMaxScaler fit on train, transform test correctly
+[ ] plotting.py      → DummyModel boundary renders cleanly
+[ ] __init__.py      → all imports work from a single `from utils import ...`
+Only when all 5 boxes are checked → Assignment 1 (Linear Regression) unlocks. 🔒
+
+Go build it — come back when you're done or stuck on any part and we'll debug together!Sonnet 4.6 LowClaude is AI and can make mistakes. Please double-check responses.Share
