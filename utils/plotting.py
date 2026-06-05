@@ -5,7 +5,7 @@ This module contains functions for plotting training curves and decision boundar
 
 import numpy as np
 import matplotlib.pyplot as plt
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, fetch_california_housing, load_diabetes
 
 def plot_decision_boundary(model, X, y, title="Decision Boundary", resolution=0.02):
    

@@ -3,7 +3,7 @@ This modules contains functions for preprocessing the data, such as Scaling, Min
 """
 
 import numpy as np
-from sklearn.datasets import load_iris, fetch_california_housing
+from sklearn.datasets import load_iris, fetch_california_housing, load_diabetes
 
 
 
@@ -60,7 +60,7 @@ if __name__ == "__main__":
     print("=" * 45)
     print("StandardScaler — California Housing")
     print("=" * 45)
-    housing = fetch_california_housing()
+    housing = load_diabetes()
     X = housing.data
     print(f"\nBefore scaling:")
     print(f"  Mean per feature : {X.mean(axis=0).round(2)}")

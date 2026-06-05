@@ -3,7 +3,7 @@ This module is for Splitting the Data into Train and Test Sets for Machine Learn
 """
 
 import numpy as np 
-from sklearn.datasets import load_iris
+from sklearn.datasets import load_iris, fetch_california_housing, load_diabetes
 
 def train_test_split(X, y, test_size=0.2, random_state=None):
     """Split data into train and test sets

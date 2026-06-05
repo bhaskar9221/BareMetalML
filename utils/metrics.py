@@ -1,5 +1,5 @@
 import numpy as np
-from sklearn.datasets import fetch_california_housing, load_iris
+from sklearn.datasets import load_iris, fetch_california_housing, load_diabetes
 
 """
 This modules contains functions for computing metrics related to Classification and Regression Problems
@@ -89,7 +89,7 @@ if __name__ == "__main__":
     print("=" * 40)
     print("REGRESSION METRICS — California Housing")
     print("=" * 40)
-    housing = fetch_california_housing()
+    housing = load_diabetes()
     y = housing.target                          # median house values
 
     # simulate a "dumb" model that always predicts the mean
