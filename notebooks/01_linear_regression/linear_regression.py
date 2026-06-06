@@ -1,3 +1,6 @@
+import os
+import sys
+
 import numpy as np
 from sklearn.datasets import load_diabetes, load_iris
 
@@ -8,7 +11,7 @@ class LinearRegression:
         """
         self.solver = solver
         self.lr = lr
-        self.n_ieterations = n_iterations
+        self.n_iterations = n_iterations
         self.alpha = alpha
         self.weights = None
         self.loss_history = []
@@ -34,7 +37,7 @@ class LinearRegression:
         self.weights = np.zeros(d)
         self.loss_history = []
 
-        for _ in range(self.n_ieterations):
+        for _ in range(self.n_iterations):
             y_hat = X_b @ self.weights
             error = y_hat - y
 
@@ -62,21 +65,28 @@ class LinearRegression:
 
 
 ########Test the implementation########
-from sklearn.datasets import load_diabetes
-from utils import train_test_split, r2_score, mean_squared_error, StandardScaler
+if __name__ == '__main__':
+    from sklearn.datasets import load_diabetes
 
-data = load_diabetes()
-X, y = data.data, data.target
+    # Ensure the repository root is on sys.path so local package imports work
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..'))
+    if repo_root not in sys.path:
+        sys.path.insert(0, repo_root)
 
-X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+    from utils import train_test_split, r2_score, mean_squared_error, StandardScaler
 
-scaler = StandardScaler()
-X_train = scaler.fit_transform(X_train)
-X_test  = scaler.transform(X_test)
+    data = load_diabetes()
+    X, y = data.data, data.target
 
-# Part A — Normal equation
-model = LinearRegression(solver='normal')
-model.fit(X_train, y_train)
-preds = model.predict(X_test)
-print("R²  :", r2_score(y_test, preds))      # expect 0.48 - 0.56
-print("MSE :", mean_squared_error(y_test, preds))
+    X_train, y_train, X_test, y_test = train_test_split(X, y, random_state=42)
+
+    scaler = StandardScaler()
+    X_train = scaler.fit_transform(X_train)
+    X_test  = scaler.transform(X_test)
+
+    # Part A — Normal equation
+    model = LinearRegression(solver='normal')
+    model.fit(X_train, y_train)
+    preds = model.predict(X_test)
+    print("R²  :", r2_score(y_test, preds))      # expect 0.48 - 0.56
+    print("MSE :", mean_squared_error(y_test, preds))
