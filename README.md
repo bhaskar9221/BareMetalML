@@ -86,4 +86,4 @@ Create a polished notebook that compares multiple models on the same datasets, r
 
 ## Next step
 
-Add the first utility module (`baremetalml/utils.py`) and implement `train_test_split` along with the initial regression/classification metrics.
+The  utility module (`baremetalml/utils`) is implemented along with the initial regression/classification metrics and Linear Regression Module. Now I will be implementing Logistic Regression.
