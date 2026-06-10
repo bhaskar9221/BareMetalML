@@ -60,6 +60,63 @@ def find_best_split(X, y, criterion='gini'):
     return best_feature, best_threshold
 
 
+class Node:
+    def __init__(self, feature=None, threshold=None, 
+                 left=None, right=None, value=None):
+        self.feature   = feature
+        self.threshold = threshold
+        self.left      = left
+        self.right     = right
+        self.value     = value
+
+    def is_leaf(self):
+        return self.value is not None
+
+
+class DecisionTree:
+
+    def __init__(self, max_depth=10, min_samples_split=2, criterion='gini'):
+        
+        self.max_depth = max_depth
+        self.min_samples_split = min_samples_split
+        self.criterion = criterion
+        self.root = None
+        pass
+
+    def fit(self, X, y):
+        self.root = self._build_tree(X, y, depth=0)
+
+    def _build_tree(self, X, y, depth):
+        n_samples  = len(y)
+        n_classes  = len(np.unique(y))
+
+        
+        if depth >= self.max_depth or n_classes == 1 or n_samples < self.min_samples_split:
+            leaf_value = np.bincount(y).argmax()
+            return Node(value=leaf_value)
+
+        feature, threshold = find_best_split(X, y, self.criterion)
+
+        left_mask  = X[:, feature] < threshold
+        right_mask = ~left_mask
+
+        left  = self._build_tree(X[left_mask],  y[left_mask],  depth + 1)
+        right = self._build_tree(X[right_mask], y[right_mask], depth + 1)
+
+        return Node(feature=feature, threshold=threshold, left=left, right=right)
+
+    def _predict_one(self, x, node):
+        if node.is_leaf():
+            return node.value
+        if x[node.feature] < node.threshold:
+            return self._predict_one(x, node.left)
+        else:
+            return self._predict_one(x, node.right)
+
+    def predict(self, X):
+        return np.array([self._predict_one(x, self.root) for x in X])
+
+
 #####Testing#####
 pure = np.array([0, 0, 0, 0])
 print(gini_impurity(pure))   
@@ -82,3 +139,22 @@ feature, threshold = find_best_split(X, y)
 print(f"Best feature : {feature}")              
 print(f"Best threshold: {threshold:.2f}")       
 print(f"Feature name  : {iris.feature_names[feature]}")  
+
+
+import sys
+sys.path.append('/home/chotu/Projects/BareMetalML')
+from sklearn.datasets import load_iris
+from utils import train_test_split, accuracy_score, StandardScaler
+
+iris = load_iris()
+X, y = iris.data, iris.target
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=42)
+
+tree = DecisionTree(max_depth=5)
+tree.fit(X_train, y_train)
+preds = tree.predict(X_test)
+
+print("Accuracy:", accuracy_score(y_test, preds))   
+print("Root split — feature:", tree.root.feature)   
+print("Root threshold:", tree.root.threshold)
