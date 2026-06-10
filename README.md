@@ -86,4 +86,4 @@ Create a polished notebook that compares multiple models on the same datasets, r
 
 ## Next step
 
-The  utility module (`baremetalml/utils`) is implemented along with the initial regression/classification metrics and Linear Regression Module. Now I will be implementing Logistic Regression.
+The  utility module (`baremetalml/utils`) is implemented along with the initial regression/classification metrics and Linear Regression Module, Logistic Regression and Decision Trees. Next implementing will be Random Forest.
