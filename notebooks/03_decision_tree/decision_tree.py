@@ -116,6 +116,23 @@ class DecisionTree:
     def predict(self, X):
         return np.array([self._predict_one(x, self.root) for x in X])
 
+    def print_tree(self, node=None, depth=0):
+        if node is None:
+            node = self.root
+
+        indent = "  " * depth      # 2 spaces per depth level
+
+        if node.is_leaf():
+            print(f"{indent}Leaf → class {node.value}")
+            return
+
+        print(f"{indent}Feature {node.feature} <= {node.threshold:.2f}")
+        
+        print(f"{indent}  [Left]")
+        self.print_tree(node.left,  depth + 1)
+        print(f"{indent}  [Right]")
+        self.print_tree(node.right, depth + 1)    
+
 
 #####Testing#####
 pure = np.array([0, 0, 0, 0])
@@ -158,3 +175,7 @@ preds = tree.predict(X_test)
 print("Accuracy:", accuracy_score(y_test, preds))   
 print("Root split — feature:", tree.root.feature)   
 print("Root threshold:", tree.root.threshold)
+
+tree = DecisionTree(max_depth=3)   
+tree.fit(X_train, y_train)
+tree.print_tree()
