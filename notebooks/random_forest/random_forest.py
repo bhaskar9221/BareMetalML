@@ -60,3 +60,15 @@ class RandomForest:
             final_preds.append(majority)
 
         return np.array(final_preds)
+    
+    @property
+    def feature_importances_(self):
+        n_features = max(max(fi) for _, fi in self.trees) + 1
+        importances = np.zeros(n_features)
+
+        for tree, feature_indices in self.trees:
+            for local_idx, global_idx in enumerate(feature_indices):
+                importances[global_idx] += tree.feature_importances_[local_idx]
+
+        importances /= self.n_trees
+        return importances / np.sum(importances)

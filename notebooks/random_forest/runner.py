@@ -31,3 +31,9 @@ single_tree = DecisionTree(max_depth=5)
 single_tree.fit(X_train, y_train)
 single_preds = single_tree.predict(X_test)
 print("Single Tree Accuracy   :", accuracy_score(y_test, single_preds))
+
+
+
+print("\nFeature importances:")
+for name, importance in zip(iris.feature_names, rf.feature_importances_):
+    print(f"  {name}: {importance:.4f}")
