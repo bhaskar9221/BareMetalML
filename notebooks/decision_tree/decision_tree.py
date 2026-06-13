@@ -2,7 +2,6 @@ import numpy as np
 
 
 def gini_impurity(y):
-    
     counts = np.bincount(y)
     probabilities = counts / len(y)
     gini = 1 - np.sum(probabilities ** 2)
@@ -10,11 +9,10 @@ def gini_impurity(y):
 
 
 def entropy(y):
-    
     counts = np.bincount(y)
     probabilities = counts / len(y)
     probabilities = probabilities[probabilities > 0]
-    entropy = -np.sum(probabilities * np.log2(probabilities))  
+    entropy = -np.sum(probabilities * np.log2(probabilities))
     return entropy
 
 
@@ -23,10 +21,10 @@ def information_gain(y, y_left, y_right, criterion='gini'):
         impurity_fn = gini_impurity
     else:
         impurity_fn = entropy
-    
+
     parent_impurity   = impurity_fn(y)
-    weighted_impurity = (len(y_left) * impurity_fn(y_left) + 
-                         len(y_right) * impurity_fn(y_right)) / len(y)
+    weighted_impurity = (len(y_left) * impurity_fn(y_left) +
+                          len(y_right) * impurity_fn(y_right)) / len(y)
     return parent_impurity - weighted_impurity
 
 
@@ -61,7 +59,7 @@ def find_best_split(X, y, criterion='gini'):
 
 
 class Node:
-    def __init__(self, feature=None, threshold=None, 
+    def __init__(self, feature=None, threshold=None,
                  left=None, right=None, value=None):
         self.feature   = feature
         self.threshold = threshold
@@ -76,29 +74,41 @@ class Node:
 class DecisionTree:
 
     def __init__(self, max_depth=10, min_samples_split=2, criterion='gini'):
-        
         self.max_depth = max_depth
         self.min_samples_split = min_samples_split
         self.criterion = criterion
         self.root = None
-        pass
+        self.feature_importances_ = None
 
     def fit(self, X, y):
+        self.n_features_ = X.shape[1]
+        self.feature_importances_ = np.zeros(self.n_features_)
         self.root = self._build_tree(X, y, depth=0)
+
+        # normalize so they sum to 1
+        total = np.sum(self.feature_importances_)
+        if total > 0:
+            self.feature_importances_ /= total
 
     def _build_tree(self, X, y, depth):
         n_samples  = len(y)
         n_classes  = len(np.unique(y))
 
-        
         if depth >= self.max_depth or n_classes == 1 or n_samples < self.min_samples_split:
             leaf_value = np.bincount(y).argmax()
             return Node(value=leaf_value)
 
         feature, threshold = find_best_split(X, y, self.criterion)
+        if feature is None:
+            leaf_value = np.bincount(y).argmax()
+            return Node(value=leaf_value)
 
         left_mask  = X[:, feature] < threshold
         right_mask = ~left_mask
+
+        # accumulate feature importance — weighted by node size
+        gain = information_gain(y, y[left_mask], y[right_mask], self.criterion)
+        self.feature_importances_[feature] += gain * len(y)
 
         left  = self._build_tree(X[left_mask],  y[left_mask],  depth + 1)
         right = self._build_tree(X[right_mask], y[right_mask], depth + 1)
@@ -120,16 +130,14 @@ class DecisionTree:
         if node is None:
             node = self.root
 
-        indent = "  " * depth      # 2 spaces per depth level
+        indent = "  " * depth
 
         if node.is_leaf():
             print(f"{indent}Leaf → class {node.value}")
             return
 
         print(f"{indent}Feature {node.feature} <= {node.threshold:.2f}")
-        
         print(f"{indent}  [Left]")
-        self.print_tree(node.left,  depth + 1)
+        self.print_tree(node.left, depth + 1)
         print(f"{indent}  [Right]")
-        self.print_tree(node.right, depth + 1)    
-
+        self.print_tree(node.right, depth + 1)
