@@ -96,6 +96,9 @@ class DecisionTree:
             return Node(value=leaf_value)
 
         feature, threshold = find_best_split(X, y, self.criterion)
+        if feature is None:
+            leaf_value = np.bincount(y).argmax()
+            return Node(value=leaf_value)
 
         left_mask  = X[:, feature] < threshold
         right_mask = ~left_mask

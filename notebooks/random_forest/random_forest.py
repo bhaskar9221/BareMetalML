@@ -40,3 +40,23 @@ class RandomForest:
             )
             tree.fit(X_sample_sub, y_sample)
             self.trees.append((tree, feature_indices))
+
+
+    def predict(self, X):
+        
+        all_preds = []
+
+        for tree, feature_indices in self.trees:
+            X_sub = X[:, feature_indices]
+            preds = tree.predict(X_sub)
+            all_preds.append(preds)
+
+        all_preds = np.array(all_preds)   
+
+        final_preds = []
+        for i in range(X.shape[0]):
+            votes = all_preds[:, i]
+            majority = np.bincount(votes).argmax()   
+            final_preds.append(majority)
+
+        return np.array(final_preds)
