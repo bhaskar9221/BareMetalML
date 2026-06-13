@@ -1,3 +1,8 @@
+import numpy as np
+import sys
+sys.path.append('/home/chotu/Projects/BareMetalML')
+from notebooks.decision_tree.decision_tree import gini_impurity, entropy, information_gain, find_best_split
+from decision_tree import DecisionTree
 
 #####Testing#####
 pure = np.array([0, 0, 0, 0])
