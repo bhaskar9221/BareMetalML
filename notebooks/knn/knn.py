@@ -34,8 +34,28 @@ class KNNClassifier:
         return np.array([self._predict_one(x) for x in X])
 
 
+class KNNRegressor:
+    def __init__(self, k=5, metric='euclidean'):
+        self.k = k
+        self.metric = metric
 
+    def fit(self, X, y):
+        self.X_train = X
+        self.y_train = y
+    
+    def _predict_one(self, x):
+        if self.metric == 'euclidean':
+            distances = euclidean_distance(x, self.X_train)
+        elif self.metric == 'manhattan':
+            distances = manhattan_distance(x, self.X_train)
+        else:
+            raise ValueError("metric must be 'euclidean' or 'manhattan'")
+        k_indices = np.argsort(distances)[:self.k]
+        k_values = self.y_train[k_indices]
+        return np.mean(k_values)
 
+    def predict(self, X):
+        return np.array([self._predict_one(x) for x in X])
 
 
 
@@ -88,3 +108,32 @@ for k in range(1, 21):
     knn = KNNClassifier(k=k)
     knn.fit(X_train, y_train)
     accs.append(accuracy_score(y_test, knn.predict(X_test)))
+
+
+# generate noisy sine wave
+np.random.seed(42)
+X_sine = np.linspace(0, 2*np.pi, 100).reshape(-1, 1)
+y_sine = np.sin(X_sine).ravel() + np.random.normal(0, 0.1, 100)
+
+X_train_s, X_test_s, y_train_s, y_test_s = train_test_split(X_sine, y_sine, random_state=42)
+
+import matplotlib.pyplot as plt
+plt.figure(figsize=(10, 4))
+
+for i, k in enumerate([1, 3, 10]):
+    knn_r = KNNRegressor(k=k)
+    knn_r.fit(X_train_s, y_train_s)
+    
+    # predict over a smooth range for plotting
+    X_plot = np.linspace(0, 2*np.pi, 200).reshape(-1, 1)
+    y_plot = knn_r.predict(X_plot)
+    
+    plt.subplot(1, 3, i+1)
+    plt.scatter(X_train_s, y_train_s, s=10, alpha=0.4, label='train data')
+    plt.plot(X_plot, y_plot, color='red', label=f'k={k}')
+    plt.legend()
+    plt.title(f"k={k}")
+
+plt.tight_layout()
+plt.savefig('knn_regression.png')
+print("Saved plot")
