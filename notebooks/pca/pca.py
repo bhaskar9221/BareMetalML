@@ -32,3 +32,12 @@ class PCA:
     def transform(self, X):
         X_centered = X - self.mean_
         return X_centered @ self.components_.T
+    
+    
+    def inverse_transform(self, X_reduced):
+        return (X_reduced @ self.components_) + self.mean_
+
+
+    def fit_transform(self, X):
+        self.fit(X)
+        return self.transform(X)
