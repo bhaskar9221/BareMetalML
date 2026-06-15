@@ -11,6 +11,7 @@ class PCA:
         self.explained_variance_ = None
         self.mean_ = None
 
+
     def fit(self, X):
         self.mean_ = X.mean(axis=0)
         X_centered = X - self.mean_
@@ -27,3 +28,7 @@ class PCA:
         self.explained_variance_ = eigenvalues[:self.n_components]
 
         return self
+    
+    def transform(self, X):
+        X_centered = X - self.mean_
+        return X_centered @ self.components_.T
