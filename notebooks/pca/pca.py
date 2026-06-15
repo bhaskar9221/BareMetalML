@@ -27,6 +27,9 @@ class PCA:
         self.components_ = eigenvectors[:, :self.n_components].T
         self.explained_variance_ = eigenvalues[:self.n_components]
 
+        self.all_eigenvalues_ = eigenvalues
+
+
         return self
     
     def transform(self, X):
@@ -41,3 +44,7 @@ class PCA:
     def fit_transform(self, X):
         self.fit(X)
         return self.transform(X)
+    
+    @property
+    def explained_variance_ratio_(self):
+        return self.explained_variance_ / np.sum(self.all_eigenvalues_)
