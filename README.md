@@ -1,89 +1,99 @@
 # BareMetalML
 
-## Project Overview
+Machine learning algorithms implemented from scratch using only NumPy — no scikit-learn inside any implementation (sklearn is used only for verification and benchmark datasets).
 
-`BareMetalML` is a repository for implementing machine learning models from scratch in Python. The aim is to learn the underlying algorithms and build a reusable codebase without depending on `scikit-learn` inside the model implementations.
+This repo exists to build genuine understanding of how ML algorithms work under the hood: the math, the gradients, the recursive logic, the numerical edge cases — all written and debugged by hand.
 
-## What this repo contains
+## Why from scratch?
 
-- A planned implementation path for foundational utilities, models, and visual helpers.
-- A focus on NumPy-based algorithms and math-first implementations.
-- External validation and comparison against standard libraries only in tests or notebooks.
+Using a library is fast. Building it yourself is how you actually learn what's happening between `.fit()` and `.predict()`. Every algorithm here was implemented, broken, debugged, and verified against scikit-learn to confirm correctness — typically matching sklearn's output to within `1e-10` or better.
 
-## Planned package layout
+## What's inside
 
-The project is expected to grow into the following structure:
+| # | Algorithm | Key concepts |
+|---|---|---|
+| 01 | [Linear Regression](notebooks/linear_regression) | Normal equation, gradient descent, L2 (Ridge) regularization |
+| 02 | [Logistic Regression](notebooks/logistic_regression) | Sigmoid, binary cross-entropy, One-vs-Rest multiclass |
+| 03 | [Decision Tree](notebooks/decision_tree) | Gini/entropy impurity, recursive splitting, tree visualization |
+| 04 | [Random Forest](notebooks/random_forest) | Bootstrap aggregation, random feature subsets, feature importance |
+| 05 | [KNN](notebooks/knn) | Euclidean/Manhattan distance, classification + regression, bias-variance tradeoff |
+| 06 | [Naive Bayes](notebooks/naive_bayes) | Gaussian NB, numerical stability (variance smoothing), Multinomial NB for text |
+| 07 | [K-Means](notebooks/kmeans) | Random vs k-means++ initialization, elbow method, edge case handling |
+| 08 | [PCA](notebooks/pca) | Eigendecomposition, explained variance, dimensionality reduction |
+| — | [Comparison Notebook](notebooks/comparison) | Every classifier head-to-head on the same dataset and split |
 
-- `baremetalml/`
-  - `utils.py`
-  - `linear_model.py`
-  - `logistic.py`
-  - `decision_tree.py`
-  - `random_forest.py`
-  - `knn.py`
-  - `naive_bayes.py`
-  - `kmeans.py`
-  - `pca.py`
-- `tests/` — validation scripts for each implementation
-- `notebooks/` — interactive demos and the final comparison notebook
+A `utils/` package (data splitting, metrics, preprocessing, plotting) is shared across every algorithm — written first, used everywhere.
 
-> Note: currently only the README exists in the repo. Implementation modules and tests will be added as the project progresses.
+## Comparison: every classifier, same dataset
 
-## Implementation roadmap
+The final notebook trains every classifier on the same Iris train/test split and compares decision boundaries side by side:
 
-This repository follows a learning path from utilities to advanced models. Each major step is designed to build on the previous one.
+![Comparison of decision boundaries](notebooks/comparison/comparison_boundaries.png)
 
-### 1. Utils
+| Model | Train Acc | Test Acc | Fit Time (s) |
+|---|---|---|---|
+| Logistic Regression | 0.9167 | 0.9333 | 0.0453 |
+| Decision Tree | 1.0000 | 0.9333 | 0.0039 |
+| Random Forest | 0.9583 | 0.9000 | 0.0195 |
+| KNN (k=5) | 0.9583 | 0.9667 | 0.0001 |
+| Naive Bayes | 0.9583 | 0.9333 | 0.0001 |
 
-Create the base tools used by all models:
-- deterministic train/test splitting
-- regression and classification metrics
-- preprocessing helpers for normalization and standardization
-- decision boundary plotting utilities
+Notice the Decision Tree hitting 100% train accuracy but unremarkable test accuracy — a textbook overfitting signature, visible directly in its blocky decision boundary. KNN generalizes best here, helped by Iris's locally well-separated classes.
 
-### 2. Linear Regression
+## Project structure
 
-Implement regression from scratch using both closed-form normal equations and gradient descent, then add Ridge regularization. The goal is to reproduce the behavior of `sklearn.linear_model.LinearRegression` and compare results.
+```
+BareMetalML/
+├── utils/                      # shared building blocks
+│   ├── data_utils.py           # train_test_split
+│   ├── metrics.py              # MSE, R², accuracy, precision/recall/F1, confusion matrix
+│   ├── preprocessing.py        # StandardScaler, MinMaxScaler
+│   └── plotting.py             # plot_decision_boundary
+├── notebooks/
+│   ├── linear_regression/
+│   ├── logistic_regression/
+│   ├── decision_tree/
+│   ├── random_forest/
+│   ├── knn/
+│   ├── naive_bayes/
+│   ├── kmeans/
+│   ├── pca/
+│   └── comparison/
+└── README.md
+```
 
-### 3. Logistic Regression
+Each algorithm folder follows the same pattern:
+- `<algorithm>.py` — the implementation (importable, no top-level test code)
+- `runner.py` — loads data, trains, evaluates, plots
+- `test_<algorithm>.py` — verification against scikit-learn
 
-Build binary and multiclass logistic regression with stable sigmoid activation, binary cross-entropy loss, and One-vs-Rest multiclass support.
+## Getting started
 
-### 4. Decision Tree
+```bash
+git clone https://github.com/bhaskar9221/BareMetalML.git
+cd BareMetalML
+pip install -r requirements.txt
+```
 
-Implement a decision tree classifier from first principles using impurity metrics, best-split search, and recursive tree building.
+Run any algorithm's runner directly, for example:
+```bash
+python notebooks/linear_regression/runner.py
+```
 
-### 5. Random Forest
+## Datasets
 
-Build an ensemble of decision trees with bootstrap sampling, feature subsampling, and majority-vote aggregation.
+All datasets are built into scikit-learn — no downloads required:
+- **Iris** — classification (Logistic Regression, Decision Tree, Random Forest, KNN, Naive Bayes, PCA)
+- **Diabetes** — regression (Linear Regression)
+- Synthetic blobs — clustering (K-Means)
 
-### 6. KNN
+## Notes on correctness
 
-Implement k-nearest neighbors for classification and regression, including Euclidean and Manhattan distance metrics.
+Every implementation was verified against its scikit-learn counterpart:
+- Linear Regression — predictions match sklearn within `1e-10`
+- Decision Tree / Random Forest — feature importances and splits validated against known Iris structure (petal length dominates, as expected)
+- PCA — explained variance ratios match the well-known Iris result (~92.5% in the first component)
 
-### 7. Naive Bayes
+## What's next
 
-Implement Gaussian Naive Bayes with numerical stability, plus an optional multinomial variant for count-based classification.
-
-### 8. K-Means
-
-Implement K-Means clustering with random and k-means++ initialization, inertia tracking, and elbow analysis.
-
-### 9. PCA
-
-Implement Principal Component Analysis using covariance decomposition, dimensionality reduction, and explained variance analysis.
-
-### 10. Final Comparison Notebook
-
-Create a polished notebook that compares multiple models on the same datasets, reports performance metrics, and visualizes decision boundaries.
-
-## Development notes
-
-- The repository is currently a roadmap and planning document.
-- The main implementation packages will be added under `baremetalml/`.
-- Tests and notebooks will be added as the algorithms are implemented.
-- `scikit-learn` will only be used for dataset loading, validation, and comparison.
-
-## Next step
-
-The  utility module (`baremetalml/utils`) is implemented along with the initial regression/classification metrics and Linear Regression Module, Logistic Regression and Decision Trees. Next implementing will be Random Forest.
+Neural networks and deep learning architectures are intentionally kept out of this repo and live in a separate project, since they deserve their own from-scratch treatment (backpropagation, autograd, etc).
